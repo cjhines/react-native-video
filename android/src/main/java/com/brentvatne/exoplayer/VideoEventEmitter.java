@@ -53,6 +53,8 @@ class VideoEventEmitter {
     private static final String EVENT_AUDIO_BECOMING_NOISY = "onVideoAudioBecomingNoisy";
     private static final String EVENT_AUDIO_FOCUS_CHANGE = "onAudioFocusChanged";
     private static final String EVENT_PLAYBACK_RATE_CHANGE = "onPlaybackRateChange";
+    private static final String EVENT_PICTURE_IN_PICTURE_STATUS_CHANGED = "onPictureInPictureStatusChanged";
+    private static final String EVENT_EXTERNAL_PAUSE_TOGGLED = "onExternalPauseToggled";
     private static final String EVENT_AUDIO_TRACKS = "onAudioTracks";
     private static final String EVENT_TEXT_TRACKS = "onTextTracks";
     private static final String EVENT_VIDEO_TRACKS = "onVideoTracks";
@@ -83,6 +85,8 @@ class VideoEventEmitter {
             EVENT_TEXT_TRACKS,
             EVENT_VIDEO_TRACKS,
             EVENT_BANDWIDTH,
+            EVENT_PICTURE_IN_PICTURE_STATUS_CHANGED,
+            EVENT_EXTERNAL_PAUSE_TOGGLED,
             EVENT_ON_RECEIVE_AD_EVENT
     };
 
@@ -112,6 +116,8 @@ class VideoEventEmitter {
             EVENT_TEXT_TRACKS,
             EVENT_VIDEO_TRACKS,
             EVENT_BANDWIDTH,
+            EVENT_PICTURE_IN_PICTURE_STATUS_CHANGED,
+            EVENT_EXTERNAL_PAUSE_TOGGLED,
             EVENT_ON_RECEIVE_AD_EVENT
     })
     @interface VideoEvents {
@@ -143,6 +149,8 @@ class VideoEventEmitter {
     private static final String EVENT_PROP_HAS_AUDIO_FOCUS = "hasAudioFocus";
     private static final String EVENT_PROP_IS_BUFFERING = "isBuffering";
     private static final String EVENT_PROP_PLAYBACK_RATE = "playbackRate";
+    private static final String EVENT_PROP_PICTURE_IN_PICTURE_ACTIVE = "isActive";
+    private static final String EVENT_PROP_IS_PLAYING = "isPlaying";
 
     private static final String EVENT_PROP_ERROR = "error";
     private static final String EVENT_PROP_ERROR_STRING = "errorString";
@@ -315,6 +323,12 @@ class VideoEventEmitter {
         receiveEvent(EVENT_READY, null);
     }
 
+    void externalPauseToggled(boolean isPlaying) {
+        WritableMap map = Arguments.createMap();
+        map.putBoolean(EVENT_PROP_IS_PLAYING, isPlaying);
+        receiveEvent(EVENT_EXTERNAL_PAUSE_TOGGLED, map);
+    }
+
     void buffering(boolean isBuffering) {
         WritableMap map = Arguments.createMap();
         map.putBoolean(EVENT_PROP_IS_BUFFERING, isBuffering);
@@ -433,6 +447,12 @@ class VideoEventEmitter {
 
     void audioBecomingNoisy() {
         receiveEvent(EVENT_AUDIO_BECOMING_NOISY, null);
+    }
+
+    void pictureInPictureModeChanged(boolean isInPictureInPictureMode) {
+        WritableMap map = Arguments.createMap();
+        map.putBoolean(EVENT_PROP_PICTURE_IN_PICTURE_ACTIVE, isInPictureInPictureMode);
+        receiveEvent(EVENT_PICTURE_IN_PICTURE_STATUS_CHANGED, map);
     }
 
     void receiveAdEvent(String event) {

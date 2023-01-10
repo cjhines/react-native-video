@@ -80,6 +80,8 @@ public class ReactExoplayerViewManager extends ViewGroupManager<ReactExoplayerVi
     private static final String PROP_SELECTED_VIDEO_TRACK_VALUE = "value";
     private static final String PROP_HIDE_SHUTTER_VIEW = "hideShutterView";
     private static final String PROP_CONTROLS = "controls";
+    private static final String PROP_PICTURE_IN_PICTURE = "pictureInPicture";
+    private static final String PROP_SHOW_PICTURE_IN_PICTURE_ON_LEAVE = "showPictureInPictureOnLeave";
 
     private static final String PROP_SUBTITLE_STYLE = "subtitleStyle";
 
@@ -402,6 +404,16 @@ public class ReactExoplayerViewManager extends ViewGroupManager<ReactExoplayerVi
                     ? bufferConfig.getDouble(PROP_BUFFER_CONFIG_MIN_BUFFER_MEMORY_RESERVE_PERCENT) : minBufferMemoryReservePercent;
             videoView.setBufferConfig(minBufferMs, maxBufferMs, bufferForPlaybackMs, bufferForPlaybackAfterRebufferMs, maxHeapAllocationPercent, minBackBufferMemoryReservePercent, minBufferMemoryReservePercent);
         }
+    }
+
+    @ReactProp(name = PROP_PICTURE_IN_PICTURE, defaultBoolean = false)
+    public void setPictureInPicture(final ReactExoplayerView videoView, final boolean pictureInPicture) {
+        videoView.setPictureInPicture(pictureInPicture);
+    }
+
+    @ReactProp(name = PROP_SHOW_PICTURE_IN_PICTURE_ON_LEAVE, defaultBoolean = false)
+    public void setShowPictureInPictureOnLeave(final ReactExoplayerView videoView, final boolean showPictureInPictureOnLeave) {
+        videoView.setShowPictureInPictureOnLeave(showPictureInPictureOnLeave);
     }
 
     private boolean startsWithValidScheme(String uriString) {
