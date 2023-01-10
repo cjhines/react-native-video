@@ -162,8 +162,6 @@ class VideoEventEmitter {
 
     private static final String EVENT_PROP_BITRATE = "bitrate";
 
-    private static final String EVENT_PROP_IS_PLAYING = "isPlaying";
-
     void setViewId(int viewId) {
         this.viewId = viewId;
     }
