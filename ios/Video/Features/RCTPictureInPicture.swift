@@ -4,7 +4,6 @@ import MediaAccessibility
 import React
 import Foundation
 
-#if TARGET_OS_IOS
 class RCTPictureInPicture: NSObject, AVPictureInPictureControllerDelegate {
     private var _onPictureInPictureStatusChanged: RCTDirectEventBlock?
     private var _onRestoreUserInterfaceForPictureInPictureStop: RCTDirectEventBlock?
@@ -12,21 +11,17 @@ class RCTPictureInPicture: NSObject, AVPictureInPictureControllerDelegate {
     private var _pipController:AVPictureInPictureController?
     private var _isActive:Bool = false
     
-    init(_ onPictureInPictureStatusChanged: @escaping RCTDirectEventBlock, _ onRestoreUserInterfaceForPictureInPictureStop: @escaping RCTDirectEventBlock) {
+    init(_ onPictureInPictureStatusChanged: RCTDirectEventBlock?, _ onRestoreUserInterfaceForPictureInPictureStop: RCTDirectEventBlock?) {
         _onPictureInPictureStatusChanged = onPictureInPictureStatusChanged
         _onRestoreUserInterfaceForPictureInPictureStop = onRestoreUserInterfaceForPictureInPictureStop
     }
     
     func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        guard let _onPictureInPictureStatusChanged = _onPictureInPictureStatusChanged else { return }
-        
-        _onPictureInPictureStatusChanged([ "isActive": NSNumber(value: true)])
+        _onPictureInPictureStatusChanged!([ "isActive": NSNumber(value: true)])
     }
     
     func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        guard let _onPictureInPictureStatusChanged = _onPictureInPictureStatusChanged else { return }
-        
-        _onPictureInPictureStatusChanged([ "isActive": NSNumber(value: false)])
+        _onPictureInPictureStatusChanged!([ "isActive": NSNumber(value: false)])
     }
     
     func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
@@ -72,4 +67,3 @@ class RCTPictureInPicture: NSObject, AVPictureInPictureControllerDelegate {
         }
     }
 }
-#endif

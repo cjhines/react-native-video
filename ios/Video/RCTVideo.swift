@@ -1,7 +1,6 @@
 import AVFoundation
 import AVKit
 import Foundation
-import GoogleInteractiveMediaAds
 import React
 import Promises
 
@@ -63,11 +62,9 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
     /* IMA Ads */
     private var _adTagUrl:String?
-    private var _imaAdsManager: RCTIMAAdsManager!
     private var _didRequestAds:Bool = false
     private var _adPlaying:Bool = false
     /* Playhead used by the SDK to track content video progress and insert mid-rolls. */
-    private var _contentPlayhead: IMAAVPlayerContentPlayhead?
 
     private var _resouceLoaderDelegate: RCTResourceLoaderDelegate?
     private var _playerObserver: RCTPlayerObserver = RCTPlayerObserver()
@@ -76,10 +73,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     private let _videoCache:RCTVideoCachingHandler = RCTVideoCachingHandler()
 #endif
 
-#if TARGET_OS_IOS
-    private let _pip:RCTPictureInPicture = RCTPictureInPicture(self.onPictureInPictureStatusChanged, self.onRestoreUserInterfaceForPictureInPictureStop)
-#endif
-
+    private var _pip: RCTPictureInPicture?
     // Events
     @objc var onVideoLoadStart: RCTDirectEventBlock?
     @objc var onVideoLoad: RCTDirectEventBlock?
@@ -107,8 +101,6 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
     init(eventDispatcher:RCTEventDispatcher!) {
         super.init(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
-
-        _imaAdsManager = RCTIMAAdsManager(video: self)
 
         _eventDispatcher = eventDispatcher
 
@@ -146,9 +138,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     }
 
     required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-
-        _imaAdsManager = RCTIMAAdsManager(video: self)
+        super.init(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
     }
 
     deinit {
@@ -167,11 +157,9 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     }
 
     @objc func applicationDidEnterBackground(notification:NSNotification!) {
-        if _playInBackground {
-            // Needed to play sound in background. See https://developer.apple.com/library/ios/qa/qa1668/_index.html
-            _playerLayer?.player = nil
-            _playerViewController?.player = nil
-        }
+        // Needed to play sound in background. See https://developer.apple.com/library/ios/qa/qa1668/_index.html
+        // TODO: Remove player instance if PIP is not active
+
     }
 
     @objc func applicationWillEnterForeground(notification:NSNotification!) {
@@ -218,7 +206,6 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
         if currentTimeSecs >= 0 {
             if !_didRequestAds && currentTimeSecs >= 0.0001 && _adTagUrl != nil {
-                _imaAdsManager.requestAds()
                 _didRequestAds = true
             }
             onVideoProgress?([
@@ -308,9 +295,6 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
                     if self._adTagUrl != nil {
                         // Set up your content playhead and contentComplete callback.
-                        self._contentPlayhead = IMAAVPlayerContentPlayhead(avPlayer: self._player!)
-
-                        self._imaAdsManager.setUpAdsLoader()
                     }
 
                     //Perform on next run loop, otherwise onVideoLoadStart is nil
@@ -394,16 +378,19 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
     @objc
     func setPictureInPicture(_ pictureInPicture:Bool) {
-#if TARGET_OS_IOS
-        _pip.setPictureInPicture(pictureInPicture)
-#endif
+        if (_pip == nil) {
+            _pip = RCTPictureInPicture(self.onPictureInPictureStatusChanged, self.onRestoreUserInterfaceForPictureInPictureStop)
+        }
+        _pip!.setPictureInPicture(pictureInPicture)
     }
 
     @objc
     func setRestoreUserInterfaceForPIPStopCompletionHandler(_ restore:Bool) {
-#if TARGET_OS_IOS
-        _pip.setRestoreUserInterfaceForPIPStopCompletionHandler(restore)
-#endif
+        if (_pip == nil) {
+            _pip = RCTPictureInPicture(self.onPictureInPictureStatusChanged, self.onRestoreUserInterfaceForPictureInPictureStop)
+        }
+        _pip!.setRestoreUserInterfaceForPIPStopCompletionHandler(restore)
+
     }
 
     @objc
@@ -423,7 +410,6 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     func setPaused(_ paused:Bool) {
         if paused {
             if _adPlaying {
-                _imaAdsManager.getAdsManager()?.pause()
             } else {
                 _player?.pause()
                 _player?.rate = 0.0
@@ -432,7 +418,6 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
             RCTPlayerOperations.configureAudio(ignoreSilentSwitch:_ignoreSilentSwitch, mixWithOthers:_mixWithOthers)
 
             if _adPlaying {
-                _imaAdsManager.getAdsManager()?.resume()
             } else {
                 if #available(iOS 10.0, *), !_automaticallyWaitsToMinimizeStalling {
                     _player?.playImmediately(atRate: _rate)
@@ -717,9 +702,10 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
                 self.layer.addSublayer(_playerLayer)
             }
             self.layer.needsDisplayOnBoundsChange = true
-#if TARGET_OS_IOS
-            _pip.setupPipController(_playerLayer)
-#endif
+            if (_pip == nil) {
+                _pip = RCTPictureInPicture(self.onPictureInPictureStatusChanged, self.onRestoreUserInterfaceForPictureInPictureStop)
+            }
+            _pip!.setupPipController(_playerLayer)
         }
     }
 
@@ -825,9 +811,6 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
         _adTagUrl = adTagUrl
     }
 
-    func getContentPlayhead() -> IMAAVPlayerContentPlayhead? {
-        return _contentPlayhead
-    }
 
     func setAdPlaying(_ adPlaying:Bool) {
         _adPlaying = adPlaying
@@ -1111,7 +1094,6 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
         onVideoEnd?(["target": reactTag as Any])
 
         if notification.object as? AVPlayerItem == _player?.currentItem {
-            _imaAdsManager.getAdsLoader()?.contentComplete()
         }
 
         if _repeat {
