@@ -408,7 +408,9 @@ public class ReactExoplayerViewManager extends ViewGroupManager<ReactExoplayerVi
 
     @ReactProp(name = PROP_PICTURE_IN_PICTURE, defaultBoolean = false)
     public void setPictureInPicture(final ReactExoplayerView videoView, final boolean pictureInPicture) {
-        videoView.setPictureInPicture(pictureInPicture);
+        // Is called immediately although there might be no player yet. 
+        // If pictureInPicture prop is set to true, it leads to a crash
+        // videoView.setPictureInPicture(pictureInPicture);
     }
 
     @ReactProp(name = PROP_SHOW_PICTURE_IN_PICTURE_ON_LEAVE, defaultBoolean = false)

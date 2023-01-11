@@ -293,9 +293,7 @@ class ReactExoplayerView extends FrameLayout implements
         leaveReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (showPictureInPictureOnLeave) {
-                    self.setPictureInPicture(true);
-                }
+                self.setPictureInPicture(true);
             }
         };
 
@@ -777,10 +775,14 @@ class ReactExoplayerView extends FrameLayout implements
         applyModifiers();
         startBufferCheckTimer();
 
+
         //Use Media Session Connector from the ExoPlayer library to enable MediaSession Controls in PIP.
-        MediaSessionConnector mediaSessionConnector = new MediaSessionConnector(mediaSession);
-        mediaSessionConnector.setPlayer(player);
-        mediaSession.setActive(true);
+
+        // Commented out because it crashed the app
+        
+        // MediaSessionConnector mediaSessionConnector = new MediaSessionConnector(mediaSession);
+        // mediaSessionConnector.setPlayer(player);
+        // mediaSession.setActive(true);
     }
 
     private DrmSessionManager buildDrmSessionManager(UUID uuid, String licenseUrl, String[] keyRequestPropertiesArray) throws UnsupportedDrmException {
@@ -927,7 +929,8 @@ class ReactExoplayerView extends FrameLayout implements
             trackSelector = null;
             player = null;
         }
-        adsLoader.release();
+        // Commented out because it crashed the app
+        // adsLoader.release();
         adsLoader = null;
         progressHandler.removeMessages(SHOW_PROGRESS);
         themedReactContext.removeLifecycleEventListener(this);
@@ -2069,6 +2072,7 @@ class ReactExoplayerView extends FrameLayout implements
      *
      * @param showPictureInPictureOnLeaveProp If true, enter pip mode when pressing home or recent HW button.
      */
+
     public void setShowPictureInPictureOnLeave(boolean showPictureInPictureOnLeaveProp) {
         showPictureInPictureOnLeave = showPictureInPictureOnLeaveProp;
     }
@@ -2090,7 +2094,7 @@ class ReactExoplayerView extends FrameLayout implements
      */
     public void enterPictureInPictureMode() {
         PackageManager packageManager = themedReactContext.getPackageManager();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+        if (player != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
                 && packageManager
                 .hasSystemFeature(
                         PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
