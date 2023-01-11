@@ -286,6 +286,13 @@ class ReactExoplayerView extends FrameLayout implements
             @Override
             public void onReceive(Context context, Intent intent) {
                 boolean isInPictureInPictureMode = intent.getBooleanExtra("isInPictureInPictureMode", false);
+                Log.w("PIP", "pipReceiver");
+                if (isInPictureInPictureMode) {
+                    Log.w("PIP", "pipReceiver isInPictureInPictureMode true");
+                }
+                if (!isInPictureInPictureMode) {
+                    Log.w("PIP", "pipReceiver isInPictureInPictureMode false");
+                }
                 self.onPictureInPictureModeChanged(isInPictureInPictureMode);
             }
         };
@@ -293,7 +300,16 @@ class ReactExoplayerView extends FrameLayout implements
         leaveReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                self.setPictureInPicture(true);
+                Log.w("PIP", "leaveReceiver");
+                if (showPictureInPictureOnLeave) {
+                    Log.w("PIP", "leaveReceiver showPictureInPictureOnLeave true");
+                }
+                if (!showPictureInPictureOnLeave) {
+                    Log.w("PIP", "leaveReceiver showPictureInPictureOnLeave false");
+                }
+                if (showPictureInPictureOnLeave) {
+                    self.setPictureInPicture(true);
+                }
             }
         };
 
@@ -779,7 +795,7 @@ class ReactExoplayerView extends FrameLayout implements
         //Use Media Session Connector from the ExoPlayer library to enable MediaSession Controls in PIP.
 
         // Commented out because it crashed the app
-        
+
         // MediaSessionConnector mediaSessionConnector = new MediaSessionConnector(mediaSession);
         // mediaSessionConnector.setPlayer(player);
         // mediaSession.setActive(true);
@@ -2083,6 +2099,19 @@ class ReactExoplayerView extends FrameLayout implements
      * @param pictureInPicture  Pip prop, if true, enter PIP mode.
      */
     public void setPictureInPicture(boolean pictureInPicture) {
+        Log.w("PIP", "setPictureInPicture");
+        if (pictureInPicture) {
+            Log.w("PIP", "setPictureInPicture pictureInPicture true");
+        }
+        if (!pictureInPicture) {
+            Log.w("PIP", "setPictureInPicture pictureInPicture false");
+        }
+        if (isInPictureInPictureMode) {
+            Log.w("PIP", "setPictureInPicture isInPictureInPictureMode true");
+        }
+        if (!isInPictureInPictureMode) {
+            Log.w("PIP", "setPictureInPicture isInPictureInPictureMode false");
+        }
         if (!isInPictureInPictureMode && pictureInPicture) {
             this.enterPictureInPictureMode();
         }
@@ -2094,11 +2123,11 @@ class ReactExoplayerView extends FrameLayout implements
      */
     public void enterPictureInPictureMode() {
         PackageManager packageManager = themedReactContext.getPackageManager();
-        if (player != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
                 && packageManager
                 .hasSystemFeature(
                         PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
-            long videoPosition = player.getCurrentPosition();
+            Log.w("PIP", "enterPiP");
             Activity activity = themedReactContext.getCurrentActivity();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 PictureInPictureParams.Builder params = new PictureInPictureParams.Builder();
