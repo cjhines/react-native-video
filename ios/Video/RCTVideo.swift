@@ -1,6 +1,7 @@
 import AVFoundation
 import AVKit
 import Foundation
+import GoogleInteractiveMediaAds
 import React
 import Promises
 
@@ -65,7 +66,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     private var _didRequestAds:Bool = false
     private var _adPlaying:Bool = false
     /* Playhead used by the SDK to track content video progress and insert mid-rolls. */
-
+    private var _contentPlayhead: IMAAVPlayerContentPlayhead?
     private var _resouceLoaderDelegate: RCTResourceLoaderDelegate?
     private var _playerObserver: RCTPlayerObserver = RCTPlayerObserver()
 
@@ -150,8 +151,9 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     // MARK: - App lifecycle handlers
 
     @objc func applicationWillResignActive(notification:NSNotification!) {
+        print("applicationWillResignActive")
         if _playInBackground || _playWhenInactive || _paused {return}
-
+        print("applicationWillResignActive else")
         _player?.pause()
         _player?.rate = 0.0
     }
@@ -810,7 +812,10 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     func setAdTagUrl(_ adTagUrl:String!) {
         _adTagUrl = adTagUrl
     }
-
+    
+    func getContentPlayhead() -> IMAAVPlayerContentPlayhead? {
+        return _contentPlayhead
+    }
 
     func setAdPlaying(_ adPlaying:Bool) {
         _adPlaying = adPlaying
