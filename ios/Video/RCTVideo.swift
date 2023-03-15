@@ -151,9 +151,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     // MARK: - App lifecycle handlers
 
     @objc func applicationWillResignActive(notification:NSNotification!) {
-        print("applicationWillResignActive")
         if _playInBackground || _playWhenInactive || _paused {return}
-        print("applicationWillResignActive else")
         _player?.pause()
         _player?.rate = 0.0
     }
