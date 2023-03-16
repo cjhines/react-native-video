@@ -13,6 +13,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     private var _playerLayer:AVPlayerLayer?
 
     private var _playerViewController:RCTVideoPlayerViewController?
+    private var _playerDelegate:PlayerDelegate?
     private var _videoURL:NSURL?
 
     /* DRM */
@@ -65,7 +66,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     private var _didRequestAds:Bool = false
     private var _adPlaying:Bool = false
     /* Playhead used by the SDK to track content video progress and insert mid-rolls. */
-
+    private var _contentPlayhead: IMAAVPlayerContentPlayhead?
     private var _resouceLoaderDelegate: RCTResourceLoaderDelegate?
     private var _playerObserver: RCTPlayerObserver = RCTPlayerObserver()
 
@@ -718,6 +719,10 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
             {
                 self.removePlayerLayer()
                 self.usePlayerViewController()
+                if (_playerViewController !== nil) {
+                    _playerDelegate = PlayerDelegate(self.onPictureInPictureStatusChanged)
+                    _playerViewController!.delegate = _playerDelegate
+                }
             }
             else
             {
@@ -810,7 +815,10 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     func setAdTagUrl(_ adTagUrl:String!) {
         _adTagUrl = adTagUrl
     }
-
+    
+    func getContentPlayhead() -> IMAAVPlayerContentPlayhead? {
+        return _contentPlayhead
+    }
 
     func setAdPlaying(_ adPlaying:Bool) {
         _adPlaying = adPlaying
