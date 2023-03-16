@@ -163,11 +163,15 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
         // Needed to play sound in background. See https://developer.apple.com/library/ios/qa/qa1668/_index.html
         // TODO: Remove player instance if PIP is not active
         print("applicationDidEnterBackground")
-//        if (_pipController!.isPictureInPictureActive) {
-//            print("PIP isActive")
-//        } else {
-//            print("PIP isNotActive")
-//        }
+        if (_pipController!.isPictureInPictureActive) {
+            print("PIP isActive")
+            onVideoExternalPlaybackChange?(["isExternalPlaybackActive": NSNumber(value: true),
+                                            "target": reactTag as Any])
+        } else {
+            print("PIP isNotActive")
+            onVideoExternalPlaybackChange?(["isExternalPlaybackActive": NSNumber(value: false),
+                                            "target": reactTag as Any])
+        }
     
         if (!_paused) {
             print("applicationDidEnterBackground send OnPipChangedEvent")
@@ -729,11 +733,12 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
         print("setControls")
         if _controls != controls || ((_playerLayer == nil) && (_playerViewController == nil))
         {
+            _controls = controls
             if _controls
             {
                 self.removePlayerLayer()
                 self.usePlayerViewController()
-//                _pipController = AVPictureInPictureController(playerLayer: AVPlayerLayer(player: _player))!
+                _pipController = AVPictureInPictureController(playerLayer: AVPlayerLayer(player: _player))!
                 
             }
             else
