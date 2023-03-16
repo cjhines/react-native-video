@@ -76,6 +76,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
     private var _pip: RCTPictureInPicture?
     // Events
+    private var _pipController: AVPictureInPictureController?
     @objc var onVideoLoadStart: RCTDirectEventBlock?
     @objc var onVideoLoad: RCTDirectEventBlock?
     @objc var onVideoBuffer: RCTDirectEventBlock?
@@ -151,7 +152,9 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     // MARK: - App lifecycle handlers
 
     @objc func applicationWillResignActive(notification:NSNotification!) {
+        print("applicationWillResignActive")
         if _playInBackground || _playWhenInactive || _paused {return}
+        print("applicationWillResignActive else")
         _player?.pause()
         _player?.rate = 0.0
     }
@@ -159,6 +162,17 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     @objc func applicationDidEnterBackground(notification:NSNotification!) {
         // Needed to play sound in background. See https://developer.apple.com/library/ios/qa/qa1668/_index.html
         // TODO: Remove player instance if PIP is not active
+        print("applicationDidEnterBackground")
+//        if (_pipController!.isPictureInPictureActive) {
+//            print("PIP isActive")
+//        } else {
+//            print("PIP isNotActive")
+//        }
+    
+        if (!_paused) {
+            print("applicationDidEnterBackground send OnPipChangedEvent")
+            onPictureInPictureStatusChanged!([ "isActive": NSNumber(value: true)])
+        }
 
     }
 
@@ -379,6 +393,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     @objc
     func setPictureInPicture(_ pictureInPicture:Bool) {
         if (_pip == nil) {
+            print("SET PIP")
             _pip = RCTPictureInPicture(self.onPictureInPictureStatusChanged, self.onRestoreUserInterfaceForPictureInPictureStop)
         }
         _pip!.setPictureInPicture(pictureInPicture)
@@ -711,16 +726,19 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
     @objc
     func setControls(_ controls:Bool) {
+        print("setControls")
         if _controls != controls || ((_playerLayer == nil) && (_playerViewController == nil))
         {
-            _controls = controls
             if _controls
             {
                 self.removePlayerLayer()
                 self.usePlayerViewController()
+//                _pipController = AVPictureInPictureController(playerLayer: AVPlayerLayer(player: _player))!
+                
             }
             else
             {
+                print("setControls usePlayerLayer")
                 _playerViewController?.view.removeFromSuperview()
                 _playerViewController?.removeFromParent()
                 _playerViewController = nil
